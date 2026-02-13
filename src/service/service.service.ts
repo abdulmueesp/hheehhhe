@@ -1,6 +1,7 @@
 import { Injectable, ConflictException, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateServiceDto } from './dto/create-service.dto';
+import { GetServicesFilterDto } from './dto/get-services-filter.dto';
 
 @Injectable()
 export class ServiceService {
@@ -50,4 +51,63 @@ export class ServiceService {
             throw new InternalServerErrorException('Failed to create service');
         }
     }
+
+    async findAll(filterDto: GetServicesFilterDto) {
+        const { active, verified, search, category, subcategory, page = '1', pageSize = '10' } = filterDto;
+        const where: any = {};
+
+        if (active !== undefined) {
+            where.status = active === 'true';
+        }
+
+        if (verified !== undefined) {
+            where.verified = verified === 'true';
+        }
+
+        if (category) {
+            where.categoryId = parseInt(category);
+        }
+
+        if (subcategory) {
+            where.subcategoryId = parseInt(subcategory);
+        }
+
+        if (search) {
+            where.OR = [
+                { serviceName: { contains: search, mode: 'insensitive' } },
+                { phoneNumber: { contains: search, mode: 'insensitive' } },
+            ];
+        }
+
+        const skip = (parseInt(page) - 1) * parseInt(pageSize);
+        const take = parseInt(pageSize);
+
+        const [data, total] = await Promise.all([
+            this.prisma.service.findMany({
+                where,
+                include: {
+                    category: true,
+                    subcategory: true,
+                    town: true,
+                },
+                orderBy: {
+                    createdAt: 'desc',
+                },
+                skip,
+                take,
+            }),
+            this.prisma.service.count({ where }),
+        ]);
+
+        return {
+            data,
+            meta: {
+                total,
+                page: parseInt(page),
+                pageSize: parseInt(pageSize),
+                lastPage: Math.ceil(total / parseInt(pageSize)),
+            },
+        };
+    }
+
 }

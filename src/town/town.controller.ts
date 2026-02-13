@@ -4,11 +4,11 @@ import { CreateTownDto } from './dto/create-town.dto';
 import { UpdateTownDto } from './dto/update-town.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
+@UseGuards(JwtAuthGuard)
 @Controller('town')
 export class TownController {
     constructor(private readonly townService: TownService) { }
 
-    @UseGuards(JwtAuthGuard)
     @Post()
     create(@Body() createTownDto: CreateTownDto) {
         return this.townService.create(createTownDto);

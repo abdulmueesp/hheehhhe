@@ -4,11 +4,11 @@ import { CreateSubcategoryDto } from './dto/create-subcategory.dto';
 import { UpdateSubcategoryDto } from './dto/update-subcategory.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
+@UseGuards(JwtAuthGuard)
 @Controller('subcategory')
 export class SubcategoryController {
     constructor(private readonly subcategoryService: SubcategoryService) { }
 
-    @UseGuards(JwtAuthGuard)
     @Post()
     create(@Body() createSubcategoryDto: CreateSubcategoryDto) {
         return this.subcategoryService.create(createSubcategoryDto);
