@@ -1,0 +1,81 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Town {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  createdAt DateTime @default(now())
+  services  Service[]
+}
+
+model Login {
+  id       Int    @id @default(autoincrement())
+  email    String @unique
+  password String
+}
+
+model Category {
+  id            Int           @id @default(autoincrement())
+  name          String        @unique
+  createdAt     DateTime      @default(now())
+  subcategories Subcategory[]
+  services      Service[]
+}
+
+model Subcategory {
+  id         Int      @id @default(autoincrement())
+  name       String
+  categoryId Int
+  category   Category @relation(fields: [categoryId], references: [id])
+  createdAt  DateTime @default(now())
+  services   Service[]
+}
+
+model Service {
+  id             Int      @id @default(autoincrement())
+  serviceName    String   @unique
+  slug           String?
+  phoneNumber    String?
+  whatsappNumber String?
+  address        String?
+  latitude       Float?
+  longitude      Float?
+  status         Boolean  @default(false)
+  verified       Boolean  @default(false)
+  is24Hour       Boolean  @default(false)
+  openingTime    String?
+  closingTime    String?
+  instagramLink  String?
+  website        String?
+  seoTitle       String?
+  seoDescription String?
+  logo           String?
+  
+  leaveDays      String[]
+  galleryImages  String[]
+  serviceItems   Json?
+
+  categoryId     Int?
+  category       Category? @relation(fields: [categoryId], references: [id])
+  
+  subcategoryId  Int?
+  subcategory    Subcategory? @relation(fields: [subcategoryId], references: [id])
+  
+  townId         Int?
+  town           Town? @relation(fields: [townId], references: [id])
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}

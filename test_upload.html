@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Cloudinary Upload</title>
+</head>
+<body>
+    <h1>Test Upload</h1>
+    <input type="file" id="fileInput">
+    <button onclick="upload()">Upload</button>
+    <pre id="output"></pre>
+
+    <script>
+        async function upload() {
+            const fileInput = document.getElementById('fileInput');
+            const file = fileInput.files[0];
+            if (!file) {
+                alert('Please select a file');
+                return;
+            }
+
+            const formData = new FormData();
+            // The key must be 'file' to match @UseInterceptors(FileInterceptor('file'))
+            formData.append('file', file);
+
+            try {
+                const response = await fetch('http://localhost:3000/cloudinary/upload', {
+                    method: 'POST',
+                    body: formData,
+                    // IMPORTANT: Do NOT set Content-Type header. Browser sets it automatically.
+                });
+
+                const result = await response.json();
+                document.getElementById('output').textContent = JSON.stringify(result, null, 2);
+            } catch (error) {
+                document.getElementById('output').textContent = 'Error: ' + error.message;
+            }
+        }
+    </script>
+</body>
+</html>
