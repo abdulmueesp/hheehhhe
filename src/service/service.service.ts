@@ -23,6 +23,8 @@ export class ServiceService {
                 category,
                 subcategory,
                 town,
+                leaveDays,
+                galleryImages,
                 ...rest
             } = createServiceDto;
 
@@ -32,7 +34,9 @@ export class ServiceService {
                     categoryId: category,
                     subcategoryId: subcategory,
                     townId: town,
-                    serviceItems: serviceItems ? serviceItems : [],
+                    serviceItems: serviceItems || [],
+                    leaveDays: leaveDays || [],
+                    galleryImages: galleryImages || [],
                 },
             });
 
