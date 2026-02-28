@@ -8,17 +8,17 @@ import {
 } from 'class-validator';
 
 export class CreateServiceDto {
-    @IsNotEmpty()
+    @IsOptional()
     @IsString()
-    serviceName: string;
+    serviceName?: string;
 
     @IsOptional()
     @IsString()
     slug?: string;
 
-    @IsNotEmpty()
+    @IsOptional()
     @IsNumber()
-    category: number;
+    category?: number;
 
     @IsOptional()
     @IsNumber()

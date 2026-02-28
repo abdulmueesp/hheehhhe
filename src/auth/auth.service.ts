@@ -21,8 +21,11 @@ export class AuthService {
 
     async login(user: any) {
         const payload = { email: user.email, sub: user.id };
-        const accessToken = this.jwtService.sign(payload);
-        const refreshToken = this.jwtService.sign(payload, { expiresIn: '7d' });
+        const accessToken = this.jwtService.sign({ ...payload, type: 'access' });
+        const refreshToken = this.jwtService.sign(
+            { ...payload, type: 'refresh' },
+            { expiresIn: '7d' }
+        );
 
         return {
             accessToken,
@@ -32,14 +35,24 @@ export class AuthService {
 
     async refresh(refreshToken: string) {
         try {
-            const payload = this.jwtService.verify(refreshToken, {
-                secret: 'super-secret-key',
-            });
+            const payload = this.jwtService.verify(refreshToken);
+
+            if (payload.type !== 'refresh') {
+                throw new UnauthorizedException('Invalid token type');
+            }
+
             const newPayload = { email: payload.email, sub: payload.sub };
-            const accessToken = this.jwtService.sign(newPayload);
-            return { accessToken };
+            const accessToken = this.jwtService.sign({ ...newPayload, type: 'access' });
+
+            // Rotate the refresh token (Optional but recommended for "sliding" sessions)
+            const newRefreshToken = this.jwtService.sign(
+                { ...newPayload, type: 'refresh' },
+                { expiresIn: '7d' }
+            );
+
+            return { accessToken, refreshToken: newRefreshToken };
         } catch (e) {
-            throw new UnauthorizedException('Invalid refresh token');
+            throw new UnauthorizedException('Invalid or expired refresh token');
         }
     }
 }

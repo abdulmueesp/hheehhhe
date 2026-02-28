@@ -15,18 +15,17 @@ export class AuthController {
         }
         const tokens = await this.authService.login(user);
 
-        // Set Refresh Token in HttpOnly Cookie
-        res.cookie('refreshToken', tokens.refreshToken, {
+        // Cookie options (Helper)
+        const cookieOptions = {
             httpOnly: true,
-            secure: true, // Use true in production/HTTPS, or verify if using http locally.
-            // Note: secure: true requires HTTPS. If localhost implies http, might need false for dev.
-            // But user asked for HTTPS best practices. I will set secure: true but might need to relax for localhost without certs.
-            // Usually localhost is exempt or we need secure: false for dev.
-            // I'll stick to secure: true but if it fails on localhost http, I'll warn.
+            secure: process.env.NODE_ENV === 'production', // Dynamic based on env
             path: '/',
-            sameSite: 'strict',
+            sameSite: 'lax' as const, // Lax is safer for dev
             maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-        });
+        };
+
+        // Set Refresh Token in HttpOnly Cookie
+        res.cookie('refreshToken', tokens.refreshToken, cookieOptions);
 
         return { accessToken: tokens.accessToken };
     }
@@ -37,8 +36,19 @@ export class AuthController {
         if (!refreshToken) {
             throw new UnauthorizedException('No refresh token');
         }
+
         const tokens = await this.authService.refresh(refreshToken);
-        return tokens;
+
+        // Update the refresh token in cookie (Rotation)
+        res.cookie('refreshToken', tokens.refreshToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            path: '/',
+            sameSite: 'lax' as const,
+            maxAge: 7 * 24 * 60 * 60 * 1000,
+        });
+
+        return { accessToken: tokens.accessToken };
     }
 
     @Post('logout')
